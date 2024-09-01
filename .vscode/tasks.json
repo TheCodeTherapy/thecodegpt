@@ -4,15 +4,19 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "type": "npm",
       "label": "watch",
       "dependsOn": ["npm: watch:tsc", "npm: watch:esbuild"],
-      "presentation": {
-        "reveal": "never"
-      },
+      "script": "watch",
+      "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": ["$tsc-watch", "$esbuild-watch"]
     },
     {
       "type": "npm",
