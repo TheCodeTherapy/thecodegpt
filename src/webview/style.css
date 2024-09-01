@@ -1,0 +1,31 @@
+body {
+  font-family: 'NotoMono Nerd Font', 'MesloLGS NF', Arial, sans-serif;
+  margin: 0;
+  padding: 21px;
+  background-color: #171721;
+  color: white;
+}
+
+textarea {
+  width: calc(100% - 21px);
+  height: 200px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #212130;
+  color: white;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007acc;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #005fa1;
+}
