@@ -1,10 +1,34 @@
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
 
 /**
- * @type {import('esbuild').Plugin}
+ * Custom plugin to copy webview assets to the output directory.
+ */
+const copyWebviewAssetsPlugin = {
+	name: 'copy-webview-assets',
+	setup(build) {
+		build.onEnd(() => {
+			const webviewDir = path.join(__dirname, 'src', 'webview');
+			const outDir = path.join(__dirname, 'dist', 'webview');
+			if (!fs.existsSync(outDir)) {
+				fs.mkdirSync(outDir, { recursive: true });
+			}
+
+			fs.readdirSync(webviewDir).forEach(file => {
+				const srcPath = path.join(webviewDir, file);
+				const destPath = path.join(outDir, file);
+				fs.copyFileSync(srcPath, destPath);
+			});
+		});
+	},
+};
+
+/**
+ * Problem matcher plugin to log build errors.
  */
 const esbuildProblemMatcherPlugin = {
 	name: 'esbuild-problem-matcher',
@@ -25,9 +49,7 @@ const esbuildProblemMatcherPlugin = {
 
 async function main() {
 	const ctx = await esbuild.context({
-		entryPoints: [
-			'src/extension.ts'
-		],
+		entryPoints: ['src/extension.ts'],
 		bundle: true,
 		format: 'cjs',
 		minify: production,
@@ -38,7 +60,7 @@ async function main() {
 		external: ['vscode'],
 		logLevel: 'silent',
 		plugins: [
-			/* add to the end of plugins array */
+			copyWebviewAssetsPlugin,
 			esbuildProblemMatcherPlugin,
 		],
 	});
