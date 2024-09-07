@@ -3,11 +3,31 @@
   "displayName": "TheCodeGPT",
   "description": "a simple GPT assistant",
   "version": "0.0.1",
+  "publisher": "TheCodeTherapy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheCodeTherapy/thecodegpt"
+  },
   "engines": {
     "vscode": "^1.92.0"
   },
   "categories": [
-    "Other"
+    "AI",
+    "Education",
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "TheCodeTherapy",
+    "TheCodeGPT",
+    "Marco Gomez",
+    "ChatGPT",
+    "GPT-4",
+    "Code assistant",
+    "Code completion",
+    "Code generation",
+    "Code suggestions",
+    "Code snippets"
   ],
   "main": "./dist/extension.js",
   "icon": "screenshots/thumbnail.png",
