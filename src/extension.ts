@@ -2,50 +2,96 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { getWebviewContent } from "./get-webview";
+import { getRepoInfoForPrompt } from "./get-repo-info";
 
-interface GPTResponse {
-  choices: Array<{
-    delta: {
-      content: string;
-    };
-  }>;
+export function activate(context: vscode.ExtensionContext) {
+  const questionDisposable = vscode.commands.registerCommand(
+    "thecodegpt.question",
+    async () => {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        vscode.window.showErrorMessage("OPENAI_API_KEY is not set.");
+        return;
+      }
+
+      const panel = vscode.window.createWebviewPanel(
+        "gptInput",
+        "GPT Input",
+        vscode.ViewColumn.Two,
+        {
+          enableScripts: true,
+        }
+      );
+
+      panel.webview.html = getWebviewContent(context, panel);
+
+      // Generate the system prompt
+      const systemPrompt = await getRepoInfoForPrompt();
+
+      // Send the system prompt to the webview
+      panel.webview.postMessage({
+        command: "setSystemPrompt",
+        systemPrompt: systemPrompt,
+      });
+
+      panel.webview.onDidReceiveMessage(async (message) => {
+        switch (message.command) {
+          case "submit":
+            if (!message.text) {
+              vscode.window.showErrorMessage("Input was empty");
+              return;
+            }
+
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+              vscode.window.showErrorMessage(
+                "No workspace folder is open. Please open a folder in VS Code."
+              );
+              return;
+            }
+
+            const responseFilePath = path.join(
+              workspaceFolders[0].uri.fsPath,
+              ".gpt_response.md"
+            );
+
+            fs.writeFileSync(responseFilePath, "# GPT Response\n");
+
+            panel.dispose();
+
+            await vscode.commands.executeCommand(
+              "markdown.showPreviewToSide",
+              vscode.Uri.file(responseFilePath),
+              vscode.ViewColumn.Two
+            );
+
+            await handleGptRequest(apiKey, message.text, responseFilePath);
+            break;
+        }
+      });
+    }
+  );
+
+  context.subscriptions.push(questionDisposable);
 }
 
-async function handleGptRequest(apiKey: string, userInput: string) {
-  if (!userInput || userInput.trim() === "") {
-    vscode.window.showErrorMessage("Input was canceled or empty");
-    return;
-  }
-
-  const systemPrompt = `
+async function handleGptRequest(
+  apiKey: string,
+  userInput: string,
+  responseFilePath: string
+) {
+  try {
+    const repoInfo = await getRepoInfoForPrompt();
+    const systemPrompt = `
 You are a helpful assistant.
+Here is some information about the repository you are working with:
+
+${repoInfo}
+
 Always answer in a markdown format.
 When writing code, please keep in mind to properly set the markdown for the appropriate syntax highlight.
-`;
-
-  try {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      vscode.window.showErrorMessage(
-        "No workspace folder is open. Please open a folder in VS Code."
-      );
-      return;
-    }
-
-    const responseFilePath = path.join(
-      workspaceFolders[0].uri.fsPath,
-      ".gpt_response.md"
-    );
-
-    // Create or clean the .gpt_response.md file
-    fs.writeFileSync(responseFilePath, ""); // This will wipe the file or create it if it doesn't exist
-
-    // Open the response file in the editor
-    const document = await vscode.workspace.openTextDocument(responseFilePath);
-    const editor = await vscode.window.showTextDocument(
-      document,
-      vscode.ViewColumn.Two
-    );
+Please be brief and short about explanations, and give preference to in-code comments to explain the code.
+    `;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -72,7 +118,7 @@ When writing code, please keep in mind to properly set the markdown for the appr
     const reader = response.body?.getReader();
     const decoder = new TextDecoder("utf-8");
     let content = "";
-    let buffer = ""; // Buffer to store incomplete JSON chunks
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader?.read()!;
@@ -89,109 +135,38 @@ When writing code, please keep in mind to properly set the markdown for the appr
         }
 
         chunkLine = chunkLine.replace(/^data:\s?/, "");
-        buffer += chunkLine; // Append current line to the buffer
+        buffer += chunkLine;
 
         try {
-          const chunkData: GPTResponse = JSON.parse(buffer);
+          const chunkData = JSON.parse(buffer);
           const delta = chunkData.choices[0].delta;
           if (delta.content) {
             content += delta.content;
           } else {
             content += "\n";
           }
-          buffer = ""; // Clear the buffer if parsing was successful
+          buffer = "";
         } catch (err) {
-          // If parsing fails, we wait for more data to be appended to the buffer
           if (!(err instanceof SyntaxError)) {
             vscode.window.showErrorMessage(
               `Unexpected error: ${(err as Error).message}`
             );
-            buffer = ""; // Reset buffer on unexpected errors
+            buffer = "";
           }
         }
       }
 
-      // Update the editor content
-      const edit = new vscode.WorkspaceEdit();
-      const fullRange = new vscode.Range(
-        document.positionAt(0),
-        document.positionAt(document.getText().length)
-      );
-      edit.replace(document.uri, fullRange, content);
-      await vscode.workspace.applyEdit(edit);
-      vscode.window.visibleTextEditors.forEach((editor) => {
-        if (editor.document.uri.toString() === document.uri.toString()) {
-          editor.revealRange(
-            new vscode.Range(
-              document.lineCount + 1,
-              0,
-              document.lineCount + 1,
-              0
-            )
-          );
-        }
-      });
+      fs.writeFileSync(responseFilePath, content);
     }
 
-    // Now explicitly save the document to ensure all content is properly stored
-    const success = await document.save();
-    if (success) {
-      vscode.window.showInformationMessage(
-        "Response has been saved successfully."
-      );
-    } else {
-      vscode.window.showErrorMessage(
-        "Failed to save the response document. Please save the file manually."
-      );
-    }
+    vscode.window.showInformationMessage(
+      "Response has been saved successfully."
+    );
   } catch (err) {
-    const error = err as Error;
     vscode.window.showErrorMessage(
-      `Failed to complete request: ${error.message}`
+      `Failed to complete request: ${(err as Error).message}`
     );
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand(
-    "thecodegpt.helloWorld",
-    async () => {
-      vscode.window.showInformationMessage("Hello, World!!!!");
-
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        vscode.window.showErrorMessage("OPENAI_API_KEY is not set.");
-        return;
-      }
-
-      const panel = vscode.window.createWebviewPanel(
-        "gptInput",
-        "GPT Input",
-        vscode.ViewColumn.Two,
-        {
-          enableScripts: true,
-        }
-      );
-
-      panel.webview.html = getWebviewContent(context, panel);
-
-      panel.webview.onDidReceiveMessage(async (message) => {
-        switch (message.command) {
-          case "submit":
-            if (!message.text) {
-              vscode.window.showErrorMessage("Input was empty");
-              return;
-            }
-            await handleGptRequest(apiKey, message.text);
-            panel.dispose(); // Close the Webview Panel after submission
-            break;
-        }
-      });
-    }
-  );
-
-  context.subscriptions.push(disposable);
-}
-
-// This method is called when your extension is deactivated
 export function deactivate() {}
