@@ -9,29 +9,39 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
   "main": "./dist/extension.js",
+  "icon": "screenshots/thumbnail.png",
   "contributes": {
     "commands": [
       {
-        "command": "thecodegpt.helloWorld",
-        "title": "Hello World"
+        "command": "thecodegpt.question",
+        "title": "Question GPT"
+      },
+      {
+        "command": "thecodegpt.generateRepoInfo",
+        "title": "Generate Repo Info"
       }
     ],
     "menus": {
       "editor/context": [
         {
           "when": "editorFocus",
-          "command": "thecodegpt.helloWorld",
+          "command": "thecodegpt.question",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "thecodegpt.helloWorld",
-        "key": "ctrl+f1",
-        "mac": "cmd+f1",
+        "command": "thecodegpt.question",
+        "key": "alt+q",
+        "mac": "alt+q",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "thecodegpt.generateRepoInfo",
+        "key": "alt+x",
+        "mac": "alt+x",
         "when": "editorTextFocus"
       }
     ]
@@ -51,16 +61,16 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.92.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
+    "@types/vscode": "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.11.0",
-    "eslint": "^8.57.0",
-    "esbuild": "^0.21.5",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.4.5",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.4.0"
+    "@vscode/test-electron": "^2.4.0",
+    "esbuild": "^0.21.5",
+    "eslint": "^8.57.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.4.5"
   }
 }
