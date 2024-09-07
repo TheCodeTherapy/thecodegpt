@@ -109,3 +109,5 @@ const response = await fetch("https://api.openai.com/v1/chat/completions", {
 ```
 
 In further updates I plan to gather such settings from the `.repoinfo.json` file, but I still haven´t decided the granularity level I want for this.
+
+For now, this extension will automatically generate text files with information about the workspace, according to the files allowed to be tracked by the `.repoinfo.json` settings file, instead of just handling the system-prompt in memory. Please keep that in mind so you may exclude such files through your `.gitignore`.
