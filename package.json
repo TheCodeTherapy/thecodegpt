@@ -30,6 +30,7 @@
     "Code snippets"
   ],
   "main": "./dist/extension.js",
+  "activationEvents": [],
   "icon": "screenshots/thumbnail.png",
   "contributes": {
     "commands": [
