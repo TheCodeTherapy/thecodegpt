@@ -2,7 +2,7 @@
   "name": "thecodegpt",
   "displayName": "TheCodeGPT",
   "description": "a simple GPT assistant",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "TheCodeTherapy",
   "repository": {
     "type": "git",
@@ -32,6 +32,12 @@
   "main": "./dist/extension.js",
   "activationEvents": [],
   "icon": "screenshots/thumbnail.png",
+  "files": [
+    "dist",
+    "src",
+    "screenshots",
+    "README.md"
+  ],
   "contributes": {
     "commands": [
       {
