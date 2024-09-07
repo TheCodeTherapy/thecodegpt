@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPT Input</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-  </head>
-  <body>
-      <h2>Enter your prompt:</h2>
-      <textarea id="input"></textarea>
-      <button onclick="submit()">Submit</button>
-      <script src="script.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPT Input</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <div class="tab">
+    <button class="tablinks" onclick="openTab(event, 'QuestionTab')" id="defaultOpen">Ask Question</button>
+    <button class="tablinks" onclick="openTab(event, 'SystemPromptTab')">System Prompt</button>
+  </div>
+
+  <div id="QuestionTab" class="tabcontent">
+    <h2>Enter your prompt:</h2>
+    <textarea id="input"></textarea>
+    <button onclick="submit()">Submit</button>
+  </div>
+
+  <div id="SystemPromptTab" class="tabcontent">
+    <h2>System Prompt</h2>
+    <pre id="systemPrompt" class="system-prompt"></pre>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>

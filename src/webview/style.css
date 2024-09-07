@@ -29,3 +29,46 @@ button {
 button:hover {
   background-color: #005fa1;
 }
+
+/* Tab styling */
+.tab {
+  overflow: hidden;
+  border-bottom: 1px solid #555;
+}
+
+.tab button {
+  background-color: inherit;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+  color: white;
+}
+
+.tab button:hover {
+  background-color: #555;
+}
+
+.tab button.active {
+  background-color: #007acc;
+}
+
+.tabcontent {
+  display: none;
+  padding: 6px 0;
+  border-top: none;
+}
+
+.tabcontent.active {
+  display: block;
+}
+
+.system-prompt {
+  background-color: #212130;
+  padding: 10px;
+  border-radius: 5px;
+  overflow: auto;
+  white-space: pre-wrap;
+}

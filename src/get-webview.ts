@@ -17,7 +17,7 @@ export function getWebviewContent(
   );
   const scriptUri = panel.webview.asWebviewUri(
     vscode.Uri.file(
-      path.join(context.extensionPath, "src", "webview", "script.js")
+      path.join(context.extensionPath, "src", "webview", "script.js") // This should be a bundled file that includes your dependencies
     )
   );
   htmlContent = htmlContent.replace('href="style.css"', `href="${styleUri}"`);
